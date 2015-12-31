@@ -10,7 +10,7 @@ module CliTest
     #   @return [String] the stdout from the execution
     # @!attribute [r] stderr
     #   @return [String] the stderr from the execution
-    # @!attribute [r] stats
+    # @!attribute [r] status
     #   @return [Process::Status] the status of the execution
     attr_reader :stdout, :stderr, :status
 
@@ -28,7 +28,7 @@ module CliTest
 
     ##
     # returns true if the status code for the execution is
-    # non zero
+    # is zero
     # @return [Boolean] whether the execution was successful
     def successful?
       @status.success?
