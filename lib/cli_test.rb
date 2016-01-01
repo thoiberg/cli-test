@@ -11,12 +11,18 @@ module CliTest
   end
 
   ##
-  # executes the supplied script and returns the results
+  # executes the supplied script and returns the results. If stdin_data
+  # is supplied it is passed to the command.
   # @param [String] command the command to be executed
+  # @param [String, Array] stdin_data data to be passed into the STDIN of
+  #   the command. If an array is passed in then the data is concatenated
+  #   using \n to simulate multiple STDIN entries, as most scripts consider
+  #   \n to be the end character for input
   # @return [CliTest::Execution] an Execution object containing the results
-  def execute(command)
+  def execute(command, stdin_data=nil)
+    stdin_data = stdin_data.join("\n") if stdin_data.is_a? Array
     @executions ||= []
-    o,e,s = Open3.capture3(command)
+    o,e,s = Open3.capture3(command, stdin_data: stdin_data)
     exe = Execution.new(o,e,s)
     @executions << exe
     exe

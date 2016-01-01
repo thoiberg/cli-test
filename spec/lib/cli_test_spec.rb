@@ -2,7 +2,10 @@ require 'cli_test'
 
 describe CliTest do
   let(:dummy_class) { Class.new { include CliTest }.new }
-  let(:simple_script) { File.expand_path('../../fixtures/simple_script.rb', __FILE__) }
+  let(:fixtures_directory) { File.expand_path('../../fixtures/', __FILE__) }
+  let(:simple_script) { "#{fixtures_directory}/simple_script.rb" }
+  let(:stdin_script) { "#{fixtures_directory}/stdin_script.rb" }
+  let(:stdin_w_multiple_script) { "#{fixtures_directory}/multiple_inputs_script.rb" }
 
   describe '#execute' do
       it 'executes the given command and returns the execution details' do
@@ -10,6 +13,22 @@ describe CliTest do
 
           expect(execution).to be_a_kind_of(CliTest::Execution)
           expect(execution.exitstatus).to eq(0)
+      end
+
+      it 'can accept data for stdin' do
+        execution = dummy_class.execute(%Q{ruby -e "test = gets.chomp;puts test"}, 'flargetnuten'
+                                        )
+
+        expect(execution).to be_successful
+        expect(execution.stdout).to eq("flargetnuten\n")
+      end
+
+      it 'treats an array of stdin_data as multiple inputs' do
+        execution = dummy_class.execute(%Q{ruby -e "test1 = gets.chomp;test2 = gets.chomp;puts test1;puts test2"}, ['a', 'b']
+                                        )
+
+        expect(execution).to be_successful
+        expect(execution.stdout).to eq("a\nb\n")
       end
   end
 
@@ -22,7 +41,7 @@ describe CliTest do
     end
 
     it 'executes the script within bundler context if option is set' do
-      expect(Open3).to receive(:capture3).with("bundle exec #{simple_script}").and_call_original
+      expect(Open3).to receive(:capture3).with("bundle exec #{simple_script}", anything).and_call_original
       execution = dummy_class.execute_script(simple_script, true)
 
       expect(execution).to be_successful
@@ -33,14 +52,14 @@ describe CliTest do
         stub_const('RUBY_PLATFORM', 'i386-mingw32')
       end
       it 'specifically uses the Ruby intepreter' do       
-        expect(Open3).to receive(:capture3).with("ruby #{simple_script}").and_call_original
+        expect(Open3).to receive(:capture3).with("ruby #{simple_script}", anything).and_call_original
         execution = dummy_class.execute_script(simple_script)
 
         expect(execution).to be_successful
       end
 
       it 'can use bundle and the ruby intepreter if use_bundler is set' do
-        expect(Open3).to receive(:capture3).with("bundle exec ruby #{simple_script}").and_call_original
+        expect(Open3).to receive(:capture3).with("bundle exec ruby #{simple_script}", anything).and_call_original
         execution = dummy_class.execute_script(simple_script, true)
 
         expect(execution).to be_successful
