@@ -23,6 +23,22 @@ module CliTest
   end
 
   ##
+  # executes the supplied Ruby script. Because Windows can't use shebangs to
+  # to figure out the correct intepreter 'ruby' is explicitly added to the command.
+  # If `use_bundler` is true then the script is executed with `bundle exec`.
+  # @param [String] script_path the relative or absolute path of a script to execute
+  # @param [Boolean] use_bundler if set executes the script within the bundler
+  #   context
+  # @return [CliTest::Execution] the execution object from running the script
+  def execute_script(script_path, use_bundler=false)
+    cmd = script_path
+    cmd = "ruby #{cmd}" if RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+    cmd = "bundle exec #{cmd}" if use_bundler
+
+    execute(cmd)
+  end
+
+  ##
   # convenience method to return last execution object for testing
   # @return [CliTest::Execution] the last execution object
   def last_execution
