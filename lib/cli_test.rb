@@ -14,13 +14,15 @@ module CliTest
   # executes the supplied script and returns the results. If stdin_data
   # is supplied it is passed to the command.
   # @param [String] command the command to be executed
-  # @param [String, Array] stdin_data data to be passed into the STDIN of
-  #   the command. If an array is passed in then the data is concatenated
-  #   using \n to simulate multiple STDIN entries, as most scripts consider
-  #   \n to be the end character for input
+  # @param [Hash] options a hash of options for the execution. valid values are:
+  #
+  #    - `stdin_data`: data to be passed into the STDIN of the command. If an array 
+  #   is passed in then the data is concatenated using <tt>\n</tt>  to simulate
+  #   multiple STDIN entries, as most scripts consider <tt>\n</tt> to be the end 
+  #   character for input.
   # @return [CliTest::Execution] an Execution object containing the results
-  def execute(command, stdin_data=nil)
-    stdin_data = stdin_data.join("\n") if stdin_data.is_a? Array
+  def execute(command, options={})
+    stdin_data = options[:stdin_data].is_a?(Array) ? options[:stdin_data].join("\n") : options[:stdin_data]
     @executions ||= []
     o,e,s = Open3.capture3(command, stdin_data: stdin_data)
     exe = Execution.new(o,e,s)
@@ -33,15 +35,18 @@ module CliTest
   # to figure out the correct intepreter 'ruby' is explicitly added to the command.
   # If `use_bundler` is true then the script is executed with `bundle exec`.
   # @param [String] script_path the relative or absolute path of a script to execute
-  # @param [Boolean] use_bundler if set executes the script within the bundler
-  #   context
+  # @param [Hash] options a hash of options to be used during the execution
+  #   valid options are:
+  #
+  #   - `use_bundler`: if set executes the script within the context of bundler
+  #   - `stdin_data`: data to be passed in to the STDIN of the execution
   # @return [CliTest::Execution] the execution object from running the script
-  def execute_script(script_path, use_bundler=false)
+  def execute_script(script_path, options={})
     cmd = script_path
     cmd = "ruby #{cmd}" if RUBY_PLATFORM =~ /mswin|mingw|cygwin/
-    cmd = "bundle exec #{cmd}" if use_bundler
+    cmd = "bundle exec #{cmd}" if options[:use_bundler]
 
-    execute(cmd)
+    execute(cmd, options)
   end
 
   ##

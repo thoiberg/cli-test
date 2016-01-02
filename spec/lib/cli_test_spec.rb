@@ -16,16 +16,16 @@ describe CliTest do
       end
 
       it 'can accept data for stdin' do
-        execution = dummy_class.execute(%Q{ruby -e "test = gets.chomp;puts test"}, 'flargetnuten'
-                                        )
+        execution = dummy_class.execute(%Q{ruby -e "test = gets.chomp;puts test"}, 
+                                        stdin_data: 'flargetnuten')
 
         expect(execution).to be_successful
         expect(execution.stdout).to eq("flargetnuten\n")
       end
 
       it 'treats an array of stdin_data as multiple inputs' do
-        execution = dummy_class.execute(%Q{ruby -e "test1 = gets.chomp;test2 = gets.chomp;puts test1;puts test2"}, ['a', 'b']
-                                        )
+        execution = dummy_class.execute(%Q{ruby -e "test1 = gets.chomp;test2 = gets.chomp;puts test1;puts test2"}, 
+                                        stdin_data: ['a', 'b'])
 
         expect(execution).to be_successful
         expect(execution.stdout).to eq("a\nb\n")
@@ -42,9 +42,23 @@ describe CliTest do
 
     it 'executes the script within bundler context if option is set' do
       expect(Open3).to receive(:capture3).with("bundle exec #{simple_script}", anything).and_call_original
-      execution = dummy_class.execute_script(simple_script, true)
+      execution = dummy_class.execute_script(simple_script, use_bundler: true)
 
       expect(execution).to be_successful
+    end
+
+    it 'can pass in data to the STDIN of the execution' do
+      execution = dummy_class.execute_script(stdin_script, stdin_data: 'apple')
+
+      expect(execution).to be_successful
+      expect(execution.stdout).to eq("favourite fruit:\napple\n")
+    end
+
+    it 'treats an array of entries for stdin_data as separate entries' do
+      execution = dummy_class.execute_script(stdin_w_multiple_script, stdin_data: ['apple', 'banana', 'orange'])
+
+      expect(execution).to be_successful
+      expect(execution.stdout).to eq("3 favourite fruit:\napple,banana,orange\n")
     end
 
     context 'on Windows' do
@@ -60,7 +74,7 @@ describe CliTest do
 
       it 'can use bundle and the ruby intepreter if use_bundler is set' do
         expect(Open3).to receive(:capture3).with("bundle exec ruby #{simple_script}", anything).and_call_original
-        execution = dummy_class.execute_script(simple_script, true)
+        execution = dummy_class.execute_script(simple_script, use_bundler: true)
 
         expect(execution).to be_successful
       end
