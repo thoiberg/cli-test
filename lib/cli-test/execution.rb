@@ -34,6 +34,14 @@ module CliTest
       @status.success?
     end
 
+    ##
+    # returns the stdout and stderr combined with a newline (<tt>\n</tt>)
+    # separator.
+    # @return [String] the combined stdout and stderr of the execution
+    def output
+      @stdout + "\n" + @stderr
+    end
+
     def_delegator :@status, :exitstatus
   end
 end

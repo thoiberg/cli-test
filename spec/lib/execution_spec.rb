@@ -28,6 +28,11 @@ describe CliTest::Execution do
 
       expect(execution.successful?).to be_falsey
     end
+  end
 
+  describe '#output' do
+    it 'returns the stdout and stderr combined' do
+      expect(execution.output).to eq("stdout\nstderr")
+    end
   end
 end
