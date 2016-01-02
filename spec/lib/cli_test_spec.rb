@@ -2,43 +2,49 @@ require 'cli_test'
 
 describe CliTest do
   let(:dummy_class) { Class.new { include CliTest }.new }
+  let(:subject) { dummy_class }
+
   let(:fixtures_directory) { File.expand_path('../../fixtures/', __FILE__) }
   let(:simple_script) { "#{fixtures_directory}/simple_script.rb" }
   let(:script_with_args) { "#{fixtures_directory}/args_script.rb" }
   let(:stdin_script) { "#{fixtures_directory}/stdin_script.rb" }
   let(:stdin_w_multiple_script) { "#{fixtures_directory}/multiple_inputs_script.rb" }
 
+  it { is_expected.to respond_to(:last_run) }
+  it { is_expected.to respond_to(:run) }
+  it { is_expected.to respond_to(:run_script) }
+
   describe '#execute' do
-      it 'executes the given command and returns the execution details' do
-          execution = dummy_class.execute('ruby --version')
+    it 'executes the given command and returns the execution details' do
+      execution = dummy_class.execute('ruby --version')
 
-          expect(execution).to be_a_kind_of(CliTest::Execution)
-          expect(execution.exitstatus).to eq(0)
-      end
+      expect(execution).to be_a_kind_of(CliTest::Execution)
+      expect(execution.exitstatus).to eq(0)
+    end
 
-      it 'returns the command details even if the command is invalid' do
-        execution = dummy_class.execute('ruby -f')
+    it 'returns the command details even if the command is invalid' do
+      execution = dummy_class.execute('ruby -f')
 
-        expect(execution).not_to be_successful
-        expect(execution.stdout).to be_empty
-        expect(execution.stderr).to eq("ruby: invalid option -f  (-h will show valid options) (RuntimeError)\n")
-      end
+      expect(execution).not_to be_successful
+      expect(execution.stdout).to be_empty
+      expect(execution.stderr).to eq("ruby: invalid option -f  (-h will show valid options) (RuntimeError)\n")
+    end
 
-      it 'can accept data for stdin' do
-        execution = dummy_class.execute(%Q{ruby -e "test = gets.chomp;puts test"}, 
-                                        stdin_data: 'flargetnuten')
+    it 'can accept data for stdin' do
+      execution = dummy_class.execute(%Q{ruby -e "test = gets.chomp;puts test"}, 
+                                      stdin_data: 'flargetnuten')
 
-        expect(execution).to be_successful
-        expect(execution.stdout).to eq("flargetnuten\n")
-      end
+      expect(execution).to be_successful
+      expect(execution.stdout).to eq("flargetnuten\n")
+    end
 
-      it 'treats an array of stdin_data as multiple inputs' do
-        execution = dummy_class.execute(%Q{ruby -e "test1 = gets.chomp;test2 = gets.chomp;puts test1;puts test2"}, 
-                                        stdin_data: ['a', 'b'])
+    it 'treats an array of stdin_data as multiple inputs' do
+      execution = dummy_class.execute(%Q{ruby -e "test1 = gets.chomp;test2 = gets.chomp;puts test1;puts test2"}, 
+                                      stdin_data: ['a', 'b'])
 
-        expect(execution).to be_successful
-        expect(execution.stdout).to eq("a\nb\n")
-      end
+      expect(execution).to be_successful
+      expect(execution.stdout).to eq("a\nb\n")
+    end
   end
 
   describe '#execute_script' do

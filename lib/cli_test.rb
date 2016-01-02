@@ -67,4 +67,8 @@ module CliTest
 
     @executions.last
   end
+
+  alias_method :run, :execute
+  alias_method :run_script, :execute_script
+  alias_method :last_run, :last_execution
 end
