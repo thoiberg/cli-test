@@ -45,6 +45,10 @@ describe CliTest do
       expect(execution).to be_successful
       expect(execution.stdout).to eq("a\nb\n")
     end
+
+    it 'returns a CliTest::Error if the command is invalid' do
+      expect { dummy_class.execute('fake_command') }.to raise_error(CliTest::Error)
+    end
   end
 
   describe '#execute_script' do

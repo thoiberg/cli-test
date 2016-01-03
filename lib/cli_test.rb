@@ -24,11 +24,10 @@ module CliTest
   def execute(command, options={})
     # if stdin_data is array then convert into a newline delineated string otherwise return as is
     stdin_data = options[:stdin_data].respond_to?(:join) ? options[:stdin_data].join("\n") : options[:stdin_data]
-    @executions ||= []
-    o,e,s = Open3.capture3(command, stdin_data: stdin_data)
-    exe = Execution.new(o,e,s)
-    @executions << exe
-    exe
+    stdout,stderr,status = Open3.capture3(command, stdin_data: stdin_data)
+    @last_execution = Execution.new(stdout,stderr,status)
+  rescue Exception => e
+    raise Error.new("command or file path: #{command} could not be executed. Error: #{e.message}")
   end
 
   ##
@@ -61,11 +60,11 @@ module CliTest
   # convenience method to return last execution object for testing
   # @return [CliTest::Execution] the last execution object
   def last_execution
-    unless @executions
-      raise Error.new('No executions have occured')
+    unless @last_execution
+      raise Error.new('No executions have occured. Try running execute or execute_script')
     end
 
-    @executions.last
+    @last_execution
   end
 
   alias_method :run, :execute
